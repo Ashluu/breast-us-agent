@@ -379,6 +379,20 @@ def _eval(scorer: ViewScorer, args) -> None:
         m = res["loop"][name]
         print(f"  {name:32s} {m['auroc']:.3f}   {m['mean_views']:.2f}   {m['stable_share']:.0%}")
 
+    # Paired bootstrap of loop (fixed order, all views) minus the best single view named
+    # in the criterion (roi): same resampled cases for both.
+    outs, _ = looped(t, fixed_policy, list(VIEWS))
+    p_loop, p_roi = np.array([o["findings"]["prob_malignant"] for o in outs]), t["roi"].to_numpy()
+    rng, diffs = np.random.default_rng(0), []
+    while len(diffs) < 2000:
+        b = rng.integers(0, len(y), len(y))
+        if 0 < y[b].sum() < len(b):
+            diffs.append(roc_auc_score(y[b], p_loop[b]) - roc_auc_score(y[b], p_roi[b]))
+    res["loop_minus_roi"] = {"diff": float(roc_auc_score(y, p_loop) - roc_auc_score(y, p_roi)),
+                             "ci95": [float(np.percentile(diffs, 2.5)), float(np.percentile(diffs, 97.5))]}
+    print(f"\nloop - roi alone: {res['loop_minus_roi']['diff']:+.3f}  "
+          f"95% CI [{res['loop_minus_roi']['ci95'][0]:+.3f}, {res['loop_minus_roi']['ci95'][1]:+.3f}]  (paired bootstrap)")
+
     if args.llm_n:
         sub = t.sample(n=min(args.llm_n, len(t)), random_state=args.seed)
         outs, m = looped(sub, make_llm_policy(), list(VIEWS))
@@ -393,7 +407,8 @@ def _eval(scorer: ViewScorer, args) -> None:
               f"fixed order used in {m['fallback_rounds']}")
 
     os.makedirs("results", exist_ok=True)
-    path = os.path.join("results", f"{time.strftime('%Y%m%d-%H%M%S')}_agent_loop.json")
+    tag = os.path.splitext(os.path.basename(scorer.checkpoint))[0]
+    path = os.path.join("results", f"{time.strftime('%Y%m%d-%H%M%S')}_agent_loop_{tag}.json")
     with open(path, "w") as fh:
         json.dump(res, fh, indent=2)
     print(f"\nwrote {path}")

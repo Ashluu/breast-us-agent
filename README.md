@@ -64,7 +64,7 @@ What these numbers do and do not show:
   Its proposals passed the constraint check in 104 of 106 rounds.
 - The gain depends on lesion-centred views placed with the dataset's expert mask. Without
   a mask the loop adds nothing.
-- No confidence intervals yet.
+- Loop vs best single view: +0.016, 95% CI [-0.008, +0.043] (paired bootstrap), so not resolved.
 
 Agent behaviour benchmark (10 cases x 9 questions, `agent/run_benchmark.py`): tool numbers
 were quoted correctly in 10 of 10 cases and the agent refused to invent age or histology.

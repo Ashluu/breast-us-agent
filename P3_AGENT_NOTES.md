@@ -188,9 +188,10 @@ same way. What can and cannot be said:
   interval computed). Its proposals were valid in 104 of 106 rounds.
 - The gain over `full` comes from views placed with the expert mask. Without a mask the
   loop adds nothing (0.815 vs 0.814). This is the same dependency as in the ROI results.
-- 0.905 vs 0.888 has no confidence interval yet and is one seed; test was not touched.
+- 0.905 vs 0.888 is not resolved: paired bootstrap of the difference +0.016, 95% CI
+  [-0.008, +0.043], one seed. Test was not touched.
 
-Open: paired bootstrap for loop vs `roi`, seeds 1 and 2, a box source that does not need
+Open: seeds 1 and 2 (`uhem/submit_agent_loop_seeds.sh`), a box source that does not need
 the expert (caliper plan). The loop is in the UI as a second button (`assess_loop` in
 `agent/app.py`) and its logic is covered by `tests/test_agent_loop.py`.
 
