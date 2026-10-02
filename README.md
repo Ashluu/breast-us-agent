@@ -84,7 +84,10 @@ python -m agent.app                       # UI at http://127.0.0.1:7860
 python -m agent.loop --n 5                # closed loop on 5 validation cases
 python -m agent.loop --eval --llm-n 60    # the results table above
 python -m agent.run_benchmark --n 10 --balanced
+python -m unittest tests.test_agent_loop   # loop logic, needs no weights, data or Ollama
 ```
+
+In the UI the closed loop is the second button, "Assess with closed loop over views".
 
 ## Weights
 
@@ -116,6 +119,7 @@ The linear probes are not stored: they are fit on the BUS-BRA train split at sta
 | `agent/tools/imaging_tools.py` | the four tools, including the template report |
 | `agent/app.py` | Gradio UI |
 | `agent/run_benchmark.py` | behaviour benchmark with auto-scoring |
+| `tests/` | unit tests for the loop logic |
 | `bjepa/`, `scripts/` | the few encoder and data modules the agent imports |
 | `P3_AGENT_NOTES.md` | design decisions and limits |
 

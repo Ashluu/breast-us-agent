@@ -191,7 +191,8 @@ same way. What can and cannot be said:
 - 0.905 vs 0.888 has no confidence interval yet and is one seed; test was not touched.
 
 Open: paired bootstrap for loop vs `roi`, seeds 1 and 2, a box source that does not need
-the expert (caliper plan), wiring the loop into the UI.
+the expert (caliper plan). The loop is in the UI as a second button (`assess_loop` in
+`agent/app.py`) and its logic is covered by `tests/test_agent_loop.py`.
 
 ## Evaluation plan
 

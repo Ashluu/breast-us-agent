@@ -1,7 +1,7 @@
 # P3 agent layer
 
 Design rationale, constraints and decisions live in `../P3_AGENT_NOTES.md` -- this file is
-just "how to run it". Start with the top-level `../README.md`.
+just "how to run it".
 
 ## Setup (once, in the Mac's OWN Terminal.app -- natively, NOT through the Claude device-bridge shell)
 
@@ -44,7 +44,10 @@ python -m agent.loop --eval --llm-n 60  # validation table: single views vs the 
 Propose, score, feed back, refine, for at most 3 rounds. The actions are views of the
 same image (full frame, lesion crops, box geometry), not treatments, and the loop
 combines every scored view instead of selecting one. Mapping, limits and results:
-P3_AGENT_NOTES.md "Closed loop over views". Not wired into the UI yet.
+P3_AGENT_NOTES.md "Closed loop over views". In the UI it is the second button,
+"Assess with closed loop over views".
+
+Logic checks that need no checkpoint, data or Ollama: `python -m unittest tests.test_agent_loop`.
 
 ## Layout
 

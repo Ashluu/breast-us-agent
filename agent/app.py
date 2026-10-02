@@ -21,13 +21,14 @@ from __future__ import annotations
 import html
 import json
 import os
+import re
 import time
 import traceback
 
 import gradio as gr
 import pandas as pd
 import requests
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from PIL import Image, ImageDraw
 
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # manifests use repo-relative paths
@@ -117,6 +118,12 @@ def _card(image_path: str, f: dict) -> str:
         rows.append(("Lesion bounding box (px)", str(f["bbox"])))
     if f.get("mask_area_fraction") is not None:
         rows.append(("Lesion share of frame", f"{f['mask_area_fraction'] * 100:.1f}%"))
+    if f.get("n_views"):
+        rows.append(("Views combined (closed loop)", ", ".join(f"{n} {p:.2f}" for n, p in f.get("views", {}).items())))
+        rows.append(("Largest disagreement between views",
+                     f"{f['view_spread']:.2f}  <span style='opacity:.6'>({'stable' if f.get('stable') else 'unstable'})</span>"))
+    if f.get("uses_expert_mask"):
+        rows.append(("Lesion box source", "dataset expert mask <span style='opacity:.6'>(not available in deployment)</span>"))
     table = "".join(f"<tr><td style='padding:4px 12px 4px 0;opacity:.7'>{k}</td><td>{v}</td></tr>" for k, v in rows)
     return f"""
 <div style="border:1px solid rgba(128,128,128,.4);border-radius:12px;padding:18px 20px;max-width:720px">
@@ -274,6 +281,54 @@ def assess(history, case_path, st):
     yield from chat(ASSESS_TEXT, history, case_path, st)
 
 
+_SCORER = None
+LOOP_TEXT = "Assess this case with the closed loop over views."
+
+
+def assess_loop(history, case_path, st):
+    """agent/loop.py on the selected case: the LLM proposes views, the frozen probes score
+    them, the scores go back for up to three rounds. The chat shows generate_report's
+    template; the LLM's one-line reasons appear only in the trace, labelled as such."""
+    global _SCORER
+    history = list(history or [])
+    if not st or st.get("case") != case_path:
+        st = _new_session(case_path)
+    if not case_path or STUB:
+        why = "Pick a case first." if not case_path else "The closed loop needs the US checkpoint (demo mode)."
+        yield history + [{"role": "assistant", "content": why}], "", gr.skip(), gr.skip(), gr.skip(), st
+        return
+    history.append({"role": "user", "content": LOOP_TEXT})
+    yield history, "", "_running the closed loop (the first run fits one probe per view, about 30 s each)..._", \
+        gr.skip(), gr.skip(), st
+    try:
+        from . import loop
+        if _SCORER is None:
+            _SCORER = loop.ViewScorer()
+        out = loop.assess(case_path, _SCORER, loop.make_llm_policy())
+    except Exception as e:
+        traceback.print_exc()
+        history.append({"role": "assistant", "content": f"⚠️ Loop stopped ({type(e).__name__}). Please retry."})
+        yield history, "", f"**STOPPED:** {type(e).__name__}: {str(e)[:160]}", gr.skip(), gr.skip(), st
+        return
+    steps = []
+    for r in out["rounds"]:
+        who = {"llm": "LLM proposes", "fallback": "LLM proposal invalid, fixed order used:"}.get(r["source"], r["source"])
+        steps.append(f"**Round {r['round']}.** {who} `{r['proposed'] if r['source'] == 'llm' else r['accepted']}`")
+        if r["rejected"]:
+            steps.append(f"   - rejected by the constraint check: `{r['rejected']}`")
+        steps.append(f"   - scores: `{r['scores']}`, combined {r['aggregate']:.2f}, disagreement {r['spread']:.2f}")
+        m = re.search(r'"reason"\s*:\s*"([^"]*)"', r.get("llm_text") or "")
+        if m:
+            steps.append(f"   - <sub>LLM reason (not part of the report): {html.escape(m.group(1))}</sub>")
+    steps.append(f"**Stopped:** {out['stop'].replace('_', ' ')}.")
+    findings = {**st["findings"], **out["findings"], "views": out["views"]}
+    st = {**st, "findings": findings, "steps": steps,
+          "msgs": st["msgs"] + [HumanMessage(content=LOOP_TEXT),
+                                AIMessage(content="Closed-loop tool result: " + json.dumps(out["findings"]))]}
+    history.append({"role": "assistant", "content": _template_as_markdown(out["report"])})
+    yield history, "", "\n".join(steps), _card(case_path, findings), gr.skip(), st
+
+
 with gr.Blocks(title="P3 agent") as demo:
     gr.Markdown("## P3: agentic orchestration (LFM2.5-2.6B + LangGraph)")
     gr.Markdown(_status_md())
@@ -284,6 +339,7 @@ with gr.Blocks(title="P3 agent") as demo:
                                value=None)
             img = gr.Image(label="Selected image", interactive=False, type="filepath")
             go = gr.Button("Assess case and produce report", variant="primary")
+            go_loop = gr.Button("Assess with closed loop over views")
             annotated = gr.Image(label="Lesion box from segment_lesion", interactive=False, type="pil")
             with gr.Accordion("Reveal reference label (hidden from the model)", open=False) as ref_acc:
                 ref_md = gr.Markdown()
@@ -292,13 +348,14 @@ with gr.Blocks(title="P3 agent") as demo:
             chatbot = gr.Chatbot(label="Chat", height=380)
             msg = gr.Textbox(label="Ask the agent", placeholder="Type a question and press Enter", lines=1)
             gr.Examples(EXAMPLES, inputs=msg, label="Example questions")
-            with gr.Accordion("ReAct trace (LLM decisions and tool results)", open=True):
+            with gr.Accordion("Trace (LLM decisions and tool results)", open=True):
                 steps_md = gr.Markdown()
     outs = [chatbot, msg, steps_md, card_html, annotated, state]
     case.change(on_case, case, [img, chatbot, state, steps_md, card_html, annotated, ref_acc]) \
         .then(_ref_md, [case, state], ref_md)
     msg.submit(chat, [msg, chatbot, case, state], outs).then(_ref_md, [case, state], ref_md)
     go.click(assess, [chatbot, case, state], outs).then(_ref_md, [case, state], ref_md)
+    go_loop.click(assess_loop, [chatbot, case, state], outs).then(_ref_md, [case, state], ref_md)
 
 if __name__ == "__main__":
     demo.launch(server_name="127.0.0.1", server_port=7860)
