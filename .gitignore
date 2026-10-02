@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.cache/
+results/
+# Images and encoder weights are not in this repo (see README "What is not here").
+data
+checkpoints
+*.pt
+*.zip
+.idea/
+.claude/

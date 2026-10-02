@@ -1,0 +1,12 @@
+{
+  "run_id": "20260926-190950",
+  "started": "2026-09-26T19:09:50",
+  "model": "lfm2.5-2.6b-agent",
+  "prompt_mode": "graph",
+  "checkpoint": "checkpoints/p1_us_ijepa_v2.pt",
+  "benchmark": "agent/benchmark/runs/_bench_F8only.xlsx",
+  "n_cases": 10,
+  "git_commit": "df807bb",
+  "mock": false,
+  "recursion_limit": 25
+}

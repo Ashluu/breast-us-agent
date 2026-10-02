@@ -1,0 +1,41 @@
+{
+  "findings": {
+    "modality": "us",
+    "prob_malignant": 0.6774,
+    "confidence": 0.3549,
+    "n_views": 2,
+    "view_spread": 0.0049,
+    "stable": true,
+    "uses_expert_mask": true
+  },
+  "views": {
+    "full": 0.675,
+    "roi": 0.6799
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "source": "llm",
+      "proposed": [
+        "full",
+        "roi"
+      ],
+      "accepted": [
+        "full",
+        "roi"
+      ],
+      "rejected": [],
+      "llm_text": "```json\n{\n  \"next\": [\"full\", \"roi\"],\n  \"reason\": \"Start with full frame context and lesion close-up to establish baseline assessment\"\n}\n```",
+      "scores": {
+        "full": 0.675,
+        "roi": 0.6799
+      },
+      "aggregate": 0.6774,
+      "spread": 0.0049
+    }
+  ],
+  "stop": "stable",
+  "image_path": "data/bus_bra/images/bus_0290-l.png",
+  "report": "This ultrasound case was assessed by the frozen encoder and linear probe, which estimate a 68% probability of malignancy (malignant-leaning). Model confidence in this estimate is moderate (0.35 on a 0-1 scale). The estimate combines 2 views of the image, which differ by at most 0% in probability (the views agree). Lesion-centred views were placed with the dataset's expert mask, which a deployed system would not have. This is a pilot-system output for a course/thesis exercise, not a clinical decision -- see P3_AGENT_NOTES.md for stated limitations.",
+  "true_risk": 1
+}

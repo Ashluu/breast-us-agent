@@ -1,0 +1,85 @@
+{
+  "findings": {
+    "modality": "us",
+    "prob_malignant": 0.0587,
+    "confidence": 0.8827,
+    "n_views": 6,
+    "view_spread": 0.2692,
+    "stable": false,
+    "uses_expert_mask": true
+  },
+  "views": {
+    "full": 0.0441,
+    "roi": 0.2723,
+    "roi_sq": 0.0968,
+    "full_flip": 0.0374,
+    "roi_wide": 0.0031,
+    "box": 0.2092
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "source": "llm",
+      "proposed": [
+        "full",
+        "roi"
+      ],
+      "accepted": [
+        "full",
+        "roi"
+      ],
+      "rejected": [],
+      "llm_text": "```json\n{\n  \"next\": [\"full\", \"roi\"],\n  \"reason\": \"Start with full frame context and lesion close-up to establish baseline assessment\"\n}\n```",
+      "scores": {
+        "full": 0.0441,
+        "roi": 0.2723
+      },
+      "aggregate": 0.1162,
+      "spread": 0.2281
+    },
+    {
+      "round": 2,
+      "source": "llm",
+      "proposed": [
+        "roi_sq",
+        "full_flip"
+      ],
+      "accepted": [
+        "roi_sq",
+        "full_flip"
+      ],
+      "rejected": [],
+      "llm_text": "```json\n{\n  \"next\": [\"roi_sq\", \"full_flip\"],\n  \"reason\": \"roi_sq tests lesion characteristics directly; full_flip assesses whole-image asymmetry\"\n}\n```",
+      "scores": {
+        "roi_sq": 0.0968,
+        "full_flip": 0.0374
+      },
+      "aggregate": 0.0843,
+      "spread": 0.2348
+    },
+    {
+      "round": 3,
+      "source": "llm",
+      "proposed": [
+        "roi_wide",
+        "box"
+      ],
+      "accepted": [
+        "roi_wide",
+        "box"
+      ],
+      "rejected": [],
+      "llm_text": "```json\n{\"next\": [\"roi_wide\", \"box\"], \"reason\": \"Large discrepancy between roi (0.27) and combined estimate (0.08); testing with wider context (roi_wide) and shape/position info (box) best validates whether high score holds\"}\n```",
+      "scores": {
+        "roi_wide": 0.0031,
+        "box": 0.2092
+      },
+      "aggregate": 0.0587,
+      "spread": 0.2692
+    }
+  ],
+  "stop": "max_rounds",
+  "image_path": "data/bus_bra/images/bus_0258-r.png",
+  "report": "This ultrasound case was assessed by the frozen encoder and linear probe, which estimate a 6% probability of malignancy (benign-leaning). Model confidence in this estimate is high (0.88 on a 0-1 scale). The estimate combines 6 views of the image, which differ by at most 27% in probability (the views disagree, so treat the estimate as unstable). Lesion-centred views were placed with the dataset's expert mask, which a deployed system would not have. This is a pilot-system output for a course/thesis exercise, not a clinical decision -- see P3_AGENT_NOTES.md for stated limitations.",
+  "true_risk": 1
+}
