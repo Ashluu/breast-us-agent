@@ -47,7 +47,7 @@ the most favourable view would be choosing the answer.
 ## Results
 
 BUS-BRA validation split, 385 images, patient-grouped, one encoder seed (the thesis v3
-checkpoint, passed with `--checkpoint`). The test split was not used.
+checkpoint). The test split was not used.
 
 | | AUROC | views per case |
 |---|---|---|
@@ -86,11 +86,23 @@ python -m agent.loop --eval --llm-n 60    # the results table above
 python -m agent.run_benchmark --n 10 --balanced
 ```
 
+## Weights
+
+The ultrasound encoder is an I-JEPA ViT-B/16 trained in the thesis (v3, seed 0), stored as
+an encoder-only file with keys `encoder` and `cfg`.
+
+```
+hf auth login
+hf download HF_USER/us-ijepa-v3-encoder us_ijepa_v3_encoder.pt --local-dir checkpoints
+```
+
+The linear probes are not stored: they are fit on the BUS-BRA train split at start-up
+(about 30 s on a laptop CPU).
+
 ## What is not here
 
-- **Encoder weights.** The ultrasound encoder is an I-JEPA ViT-B trained in the thesis and
-  is not published yet. Put a checkpoint at `checkpoints/p1_us_ijepa_v2.pt` (path in
-  `agent/config.py`). Without it the UI starts in a clearly marked demo mode.
+- **Encoder weights** are not in git (343 MB). They live in a private Hugging Face model
+  repo, see "Weights" below. Without them the UI starts in a clearly marked demo mode.
 - **Images.** BUS-BRA is public and fetched by the build script. Only the manifests
   (file names, labels, splits) are in the repo.
 - **Mammography.** `call_mg` exists but its data and manifest are not included.

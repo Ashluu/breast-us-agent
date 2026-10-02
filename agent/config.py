@@ -29,10 +29,9 @@ class AgentConfig:
     encoder_name: str = "vit_base_patch16_224.augreg_in21k_ft_in1k"
     image_size: tuple[int, int] = (224, 224)
 
-    # 🔴 not present on this Mac as of 2026-09-20 (see P3_AGENT_NOTES.md "Open TODO") --
-    # this repo's checkpoints/ only has what was manually copied here. Point this at
-    # wherever it was actually written -- this Mac (native Terminal) or UHEM -- before running call_us.
-    us_checkpoint: str = "checkpoints/p1_us_ijepa_v2.pt"
+    # Encoder-only copy of the thesis v3 ultrasound checkpoint (keys: encoder, cfg), 343 MB.
+    # Not in git: download it from the Hugging Face Hub, see README "Weights".
+    us_checkpoint: str = "checkpoints/us_ijepa_v3_encoder.pt"
     mg_checkpoint: str = "checkpoints/p1_mm_ijepa_armC.pt"   # present locally, confirmed 2026-09-20
 
     us_manifest: str = "manifests/bus_bra.csv"
