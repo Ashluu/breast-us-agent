@@ -119,8 +119,7 @@ The ultrasound encoder is an I-JEPA ViT-B/16 trained in the thesis (v3, seed 0),
 an encoder-only file with keys `encoder` and `cfg`.
 
 ```
-hf auth login
-hf download HF_USER/us-ijepa-v3-encoder us_ijepa_v3_encoder.pt --local-dir checkpoints
+hf download Ashluu/us-ijepa-v3-encoder us_ijepa_v3_encoder.pt --local-dir checkpoints
 ```
 
 The linear probes are not stored: they are fit on the BUS-BRA train split at start-up
@@ -128,8 +127,8 @@ The linear probes are not stored: they are fit on the BUS-BRA train split at sta
 
 ## What is not here
 
-- **Encoder weights** are not in git (343 MB). They live in a private Hugging Face model
-  repo, see "Weights" below. Without them the UI starts in a clearly marked demo mode.
+- **Encoder weights** are not in git (343 MB). They are in the public Hugging Face model
+  repo https://huggingface.co/Ashluu/us-ijepa-v3-encoder, see "Weights" above. Without them the UI starts in a clearly marked demo mode.
 - **Images.** BUS-BRA is public and fetched by the build script. Only the manifests
   (file names, labels, splits) are in the repo.
 - **Mammography.** `call_mg` exists but its data and manifest are not included.
