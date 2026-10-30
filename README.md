@@ -133,7 +133,6 @@ The linear probes are not stored: they are fit on the BUS-BRA train split at sta
 - **Images.** BUS-BRA is public and fetched by the build script. Only the manifests
   (file names, labels, splits) are in the repo.
 - **Mammography.** `call_mg` exists but its data and manifest are not included.
-- **BUS-CoT manifest.** Not distributed until its licence is confirmed; the UI then lists BUS-BRA cases only.
 - **Paper full texts** of the feature catalog: only the list with licences (`docs/knowledge_manifest.csv`).
 
 BUS-BRA is used under its licence, which asks every work using it to cite: W. Gómez-Flores,
