@@ -1,0 +1,53 @@
+# Environment for the feature library + RAG retriever (conda env `breast-agent`, ~/miniforge3).
+# Versions are the ones actually installed on 2026-10-30, macOS arm64, Python 3.11.18.
+# Install order matters, see agent/features/LIBRARY_SURVEY.md (top) for the exact commands:
+#   - conda-forge: python, numpy, scipy, pandas, scikit-learn, scikit-image, simpleitk,
+#     matplotlib, lxml, requests, pyyaml, pytorch, torchvision
+#     (torch MUST come from conda-forge: the pip torch wheel bundles its own libomp and
+#      aborts with "OMP: Error #15" next to conda-forge numpy/sklearn)
+#   - pip: everything else
+#   - pyradiomics has no macOS arm64 wheel and no conda-forge package; it is built from the
+#     sdist with --no-build-isolation and zig as the C compiler (no Xcode CLT on this machine).
+#     The 3.1.0 sdist reports itself as 3.0.1 (versioneer bug in the tarball).
+
+# --- conda-forge ---
+python==3.11.18
+numpy==2.4.6
+scipy==1.17.1
+pandas==3.1.0
+scikit-learn==1.9.1
+scikit-image==0.26.0
+simpleitk==2.5.6
+matplotlib==3.11.2
+lxml==6.1.3
+requests==2.34.2
+PyYAML==6.0.3
+torch==2.10.0          # conda-forge "pytorch", MPS available
+torchvision==0.26.0
+
+# --- pip ---
+opencv-python-headless==5.0.0.93
+pyradiomics==3.0.1     # built from pyradiomics-3.1.0.tar.gz, see note above
+PyWavelets==1.9.0
+pillow==12.3.0         # pip upgraded conda's pillow when gradio was installed
+timm==1.0.30
+transformers==5.22.1
+tokenizers==0.23.3
+huggingface_hub==2.4.0
+safetensors==0.8.0
+sentence-transformers==6.2.0
+langgraph==1.2.18
+langchain-core==1.7.3
+langchain-ollama==1.1.0
+ollama==0.6.3
+rank-bm25==0.2.2
+pypdf==6.21.4
+pyarrow==26.0.0
+pydicom==3.0.2
+openpyxl==3.1.5
+gradio==6.31.0
+
+# --- build-only (needed for the pyradiomics build) ---
+setuptools==84.2.1
+versioneer==0.29
+ziglang==0.17.0

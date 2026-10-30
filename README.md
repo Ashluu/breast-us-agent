@@ -89,6 +89,30 @@ python -m unittest tests.test_agent_loop   # loop logic, needs no weights, data 
 
 In the UI the closed loop is the second button, "Assess with closed loop over views".
 
+## Evidence features and generated code (in progress)
+
+The next version lets the agent question the classifier's probability with measured image evidence
+(outline shape, margin, posterior features) and move the decision threshold up or down by a fixed step.
+The language model decides only the direction; the step size is fixed. Features come from a library first;
+when no library function fits, the model writes one, which is tested in a sandbox before use.
+
+- `agent/features/library.py`: 17 features on the lesion outline and image (scikit-image, OpenCV) plus the
+  PyRadiomics 2-D features, each linked to its row in `agent/features/feature_catalog.csv`.
+- `agent/features/feature_catalog.csv`: 93 breast-ultrasound features with definition, BI-RADS category,
+  the direction the literature calls suspicious and the source. Built from 24 open-access papers listed in
+  `docs/knowledge_manifest.csv` (full texts are not redistributed; `scripts/knowledge/` fetches them).
+- `agent/features/sandbox.py`: checks generated code (allowed imports only, no file or network access),
+  runs it in a separate process with a time limit and tests it on synthetic shapes.
+- `agent/features/generate.py`: asks the local model for a feature, repairs it from the sandbox errors
+  (at most three attempts).
+
+```
+conda create -n breast-agent python=3.11 && conda activate breast-agent
+pip install -r requirements-rag.txt      # pyradiomics needs a C compiler, see agent/features/LIBRARY_SURVEY.md
+python -m unittest tests.test_feature_sandbox tests.test_feature_library
+python -m agent.features.generate "margin sharpness: how abruptly brightness changes across the border"
+```
+
 ## Weights
 
 The ultrasound encoder is an I-JEPA ViT-B/16 trained in the thesis (v3, seed 0), stored as
@@ -109,6 +133,12 @@ The linear probes are not stored: they are fit on the BUS-BRA train split at sta
 - **Images.** BUS-BRA is public and fetched by the build script. Only the manifests
   (file names, labels, splits) are in the repo.
 - **Mammography.** `call_mg` exists but its data and manifest are not included.
+- **BUS-CoT manifest.** Not distributed until its licence is confirmed; the UI then lists BUS-BRA cases only.
+- **Paper full texts** of the feature catalog: only the list with licences (`docs/knowledge_manifest.csv`).
+
+BUS-BRA is used under its licence, which asks every work using it to cite: W. Gómez-Flores,
+M. J. Gregorio-Calas and W. C. A. Pereira, "BUS-BRA: A breast ultrasound dataset for assessing
+computer-aided diagnosis systems", Medical Physics, 2023.
 
 ## Layout
 
@@ -119,7 +149,8 @@ The linear probes are not stored: they are fit on the BUS-BRA train split at sta
 | `agent/tools/imaging_tools.py` | the four tools, including the template report |
 | `agent/app.py` | Gradio UI |
 | `agent/run_benchmark.py` | behaviour benchmark with auto-scoring |
-| `tests/` | unit tests for the loop logic |
+| `agent/features/` | feature library, catalog, sandbox and code generation for generated features |
+| `tests/` | unit tests for the loop logic, the sandbox and the feature library |
 | `bjepa/`, `scripts/` | the few encoder and data modules the agent imports |
 | `P3_AGENT_NOTES.md` | design decisions and limits |
 

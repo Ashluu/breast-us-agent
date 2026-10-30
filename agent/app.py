@@ -56,6 +56,8 @@ def _load_cases() -> pd.DataFrame:
     is in the v2 SSL pretraining pool (configs/p1_us_ijepa_v2.yaml); its test split is not."""
     bra = pd.read_csv(CONFIG.us_manifest)
     bra = bra[bra["split"] == CONFIG.val_split].assign(source="BUS-BRA validation")
+    if not os.path.exists("manifests/bus_cot.csv"):           # not distributed: BUS-CoT licence not confirmed
+        return bra[["image_path", "risk", "birads", "source"]].set_index("image_path")
     cot = pd.read_csv("manifests/bus_cot.csv")
     cot = cot[(cot["split"] == "test") & cot["image_path"].map(os.path.exists)]
     cot = cot.assign(source="BUS-CoT test (external)")

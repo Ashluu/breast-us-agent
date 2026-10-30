@@ -10,3 +10,4 @@ checkpoints
 *.zip
 .idea/
 .claude/
+manifests/bus_cot.csv
